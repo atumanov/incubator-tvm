@@ -505,36 +505,47 @@ TVM_REGISTER_GLOBAL("vta.simulator.profiler_debug_mode")
 }  // namespace vta
 
 void* VTAMemAlloc(size_t size, int cached) {
-  return vta::sim::DRAM::Global()->Alloc(size);
+  void * ptr = vta::sim::DRAM::Global()->Alloc(size);
+  printf("\tAlloc %x", size);
+  return ptr;
 }
 
 void VTAMemFree(void* buf) {
+  printf("\tFreeing %p\n", buf);
   vta::sim::DRAM::Global()->Free(buf);
 }
 
 vta_phy_addr_t VTAMemGetPhyAddr(void* buf) {
-  return vta::sim::DRAM::Global()->GetPhyAddr(buf);
+  vta_phy_addr_t addr = vta::sim::DRAM::Global()->GetPhyAddr(buf);
+  printf(" Physical address(%p) = %p\n", buf, addr);
+  return addr;
 }
 
 void VTAMemCopyFromHost(void* dst, const void* src, size_t size) {
+  printf("\t[HOST]:%p -> [FPGA]:%p %x\n", dst, src, size);
   memcpy(dst, src, size);
 }
 
 void VTAMemCopyToHost(void* dst, const void* src, size_t size) {
+  printf("\t[FPGA]:%p -> [HOST]:%p %x\n", dst, src, size);
   memcpy(dst, src, size);
 }
 
 void VTAFlushCache(void* vir_addr, vta_phy_addr_t phy_addr, int size) {
+  printf("Flush cache\n");
 }
 
 void VTAInvalidateCache(void* vir_addr, vta_phy_addr_t phy_addr, int size) {
+  printf("Invalidate cache\n");
 }
 
 VTADeviceHandle VTADeviceAlloc() {
+  printf("Allocating a new device\n");
   return new vta::sim::Device();
 }
 
 void VTADeviceFree(VTADeviceHandle handle) {
+  printf("Freeing device %p\n", handle);
   delete static_cast<vta::sim::Device*>(handle);
 }
 
@@ -542,6 +553,7 @@ int VTADeviceRun(VTADeviceHandle handle,
                  vta_phy_addr_t insn_phy_addr,
                  uint32_t insn_count,
                  uint32_t wait_cycles) {
+  printf("Run Handle: %p phy_addr: %p count: %x\n", handle, insn_phy_addr, insn_count);
   return static_cast<vta::sim::Device*>(handle)->Run(
       insn_phy_addr, insn_count, wait_cycles);
 }

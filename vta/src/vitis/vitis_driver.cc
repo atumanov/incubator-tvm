@@ -30,6 +30,9 @@
 #include <cstring>
 #include <sstream>
 #include <vta/xcl2.h>
+#include "mem_manager.h"
+
+static cma_manager::cma_pool mem_pool;
 
 /*
 void VitisProgramBin(cl::Context& context, cl::Device& device, const char *binaryFile) {
@@ -108,22 +111,23 @@ class VTADevice {
  *   vta/include/vta/driver.h
  */
 void* VTAMemAlloc(size_t size, int cached) {
-  return malloc(size);
+  return mem_pool.alloc();
 }
 
 void VTAMemFree(void* buf) {
-  free(buf);
+  mem_pool.free(buf);
 }
 
 vta_phy_addr_t VTAMemGetPhyAddr(void* buf) {
+  mem_pool.get_physical_addr(buf);
 }
 
 void VTAMemCopyFromHost(void* dst, const void* src, size_t size) {
-  memcpy(dst, src, size);
+  //memcpy(dst, src, size);
 }
 
 void VTAMemCopyToHost(void* dst, const void* src, size_t size) {
-  memcpy(dst, src, size);
+  //memcpy(dst, src, size);
 }
 
 void VTAFlushCache(void* vir_addr, vta_phy_addr_t phy_addr, int size) {
