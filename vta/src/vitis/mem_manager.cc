@@ -17,8 +17,8 @@ namespace cma_manager {
     void * cma_pool::alloc(uint64_t size) {
         bytes_used += size;
         if (bytes_used > capacity) {
-            cout << "OOPS" << endl;
-            exit(0);
+            std::cout << "OOPS" << std::endl;
+            return 0;
         }
         if (cma_table.size() == 0) {
             cma_table.push_back({size, 0, static_cast<void*>(pool)});

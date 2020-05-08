@@ -1,4 +1,6 @@
 #include "mem_manager.h"
+#include <memory>
+#include <functional>
 
 using namespace std;
 using namespace cma_manager;
@@ -11,26 +13,28 @@ static constexpr uint32_t short_size = sizeof(unsigned short);
 
 int main() {
     vector<function<bool()>> test_suite;
-    cout << "start" << endl;
     bootstrap(test_suite);
 
     int test_num = 0;
     for (vector<function<bool()>>::iterator it = test_suite.begin();
             it != test_suite.end();
             it++) {
+        cout << "Running test ...." << test_num << endl;
         function<bool()> test = *it;
         bool res = test();
         if (!res) {
-            std::cout << "test #" << test_num++ << " failed" << std::endl;
+            cout << "test #" << test_num++ << " failed" << endl;
+        } else {
+            cout << "test #" << test_num++ << " passed" << endl;
         }
     }
 }
 
 void bootstrap(vector<function<bool()>> &test_suite) {
     test_suite.push_back([]()->bool {
-        unique_ptr<cma_pool> cma;
+        cout << "Running basic test" << endl;
+        unique_ptr<cma_pool> cma(new cma_pool());
 
-        cout << "start" << endl;
         void * buf1 = cma->alloc(long_size);
         void * buf2 = cma->alloc(int_size);
         void * buf3 = cma->alloc(short_size);

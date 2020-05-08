@@ -4,13 +4,9 @@
 #include <inttypes.h>
 #include <iterator>
 #include <iostream>
-#include <functional>
-#include <memory>
 #include "driver.h"
 
 #define POOL_START_SIZE ((1 << 20) * 200) // allocate 200 MB starting out
-
-using namespace std;
 
 namespace cma_manager {
 class cma_entry {
@@ -25,7 +21,7 @@ class cma_entry {
 class cma_pool {
     public:
         char* pool;
-        vector<cma_entry> cma_table;
+        std::vector<cma_entry> cma_table;
         uint64_t bytes_used;
         uint64_t capacity;
 
