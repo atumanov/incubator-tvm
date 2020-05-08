@@ -43,7 +43,7 @@ macro(set_vitis use_vta_fpga)
       set(opencl_LDFLAGS "-L${OPENCL_LIB} -lOpenCL -lpthread")
       list(APPEND TVM_RUNTIME_LINKER_LIBS ${opencl_LDFLAGS} -lrt -lstdc++)
 
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11")
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11 -fpermissive")
 
       set(_set_vitis TRUE)
   else()
