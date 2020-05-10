@@ -32,7 +32,6 @@
 #include <vta/xcl2.h>
 #include "mem_manager.h"
 
-static cma_manager::cma_pool mem_pool;
 
 /*
 void VitisProgramBin(cl::Context& context, cl::Device& device, const char *binaryFile) {
@@ -54,9 +53,11 @@ class VTADevice {
     cl::CommandQueue cmd_queue;
     cl::Program program;
     cl_int err; // OCL error checking flag
+    std::unique_ptr<cma_manager::cma_pool> cma;
 
   public:
     VTADevice() {
+      cma = make_unique();
       char name[2048];
 
       std::vector<cl::Device> devices = xcl::get_xil_devices();
@@ -111,15 +112,15 @@ class VTADevice {
  *   vta/include/vta/driver.h
  */
 void* VTAMemAlloc(size_t size, int cached) {
-  return mem_pool.alloc();
+  return cma->alloc(size);
 }
 
 void VTAMemFree(void* buf) {
-  mem_pool.free(buf);
+  cma->free(buf);
 }
 
 vta_phy_addr_t VTAMemGetPhyAddr(void* buf) {
-  mem_pool.get_physical_addr(buf);
+  cma->get_physical_addr(buf);
 }
 
 void VTAMemCopyFromHost(void* dst, const void* src, size_t size) {
@@ -152,4 +153,3 @@ int VTADeviceRun(VTADeviceHandle handle,
   return static_cast<VTADevice*>(handle)->Run(
       insn_phy_addr, insn_count, wait_cycles);
 }
-

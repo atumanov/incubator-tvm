@@ -5,6 +5,7 @@
 #include <iterator>
 #include <iostream>
 #include "driver.h"
+#include <memory>
 
 #define POOL_START_SIZE ((1 << 20) * 200) // allocate 200 MB starting out
 
@@ -32,3 +33,9 @@ class cma_pool {
         vta_phy_addr_t get_physical_addr(void* ptr);
 };
 };
+
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args)
+{
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
