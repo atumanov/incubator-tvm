@@ -44,9 +44,19 @@ elseif(PYTHON)
     list(APPEND FSIM_RUNTIME_SRCS vta/src/sim/sim_driver.cc)
     list(APPEND FSIM_RUNTIME_SRCS vta/src/vmem/virtual_memory.cc vta/src/vmem/virtual_memory.h)
     list(APPEND FSIM_RUNTIME_SRCS vta/src/sim/sim_tlpp.cc)
+    #file(GLOB FSIM_RUNTIME_SRCS vta/src/*.cc)
+    #list(APPEND FSIM_RUNTIME_SRCS vta/src/vitis/vitis_driver.cc)
+    #list(APPEND FSIM_RUNTIME_SRCS vta/src/vitis/xcl2.cc)
+
     # Target lib: vta_fsim
     add_library(vta_fsim SHARED ${FSIM_RUNTIME_SRCS})
     target_include_directories(vta_fsim PUBLIC vta/include)
+    set_vitis(FALSE) # Set Vitis with TRUE or FALSE
+    if(_set_vitis)
+      target_include_directories(vta_fsim PUBLIC ${VITIS_OPENCL_INCLUDE})
+      target_include_directories(vta_fsim PUBLIC ${VITIS_VIVADO_INCLUDE})
+    endif()
+
     foreach(__def ${VTA_DEFINITIONS})
       string(SUBSTRING ${__def} 3 -1 __strip_def)
       target_compile_definitions(vta_fsim PUBLIC ${__strip_def})
@@ -56,27 +66,6 @@ elseif(PYTHON)
       set_target_properties(vta_fsim PROPERTIES LINK_FLAGS "-undefined dynamic_lookup")
     endif(APPLE)
     target_compile_definitions(vta_fsim PUBLIC USE_FSIM_TLPP)
-
-    ## Add fsim driver sources
-    #file(GLOB FSIM_RUNTIME_SRCS vta/src/*.cc)
-    #list(APPEND FSIM_RUNTIME_SRCS vta/src/vitis/vitis_driver.cc)
-    #list(APPEND FSIM_RUNTIME_SRCS vta/src/vitis/xcl2.cc)
-    ## Target lib: vta_fsim
-    #add_library(vta_fsim SHARED ${FSIM_RUNTIME_SRCS})
-    #target_include_directories(vta_fsim PUBLIC vta/include)
-    #set_vitis("ON")
-    #if(_set_vitis)
-    #  message("\t VITIS ON!")
-    #  target_include_directories(vta_fsim PUBLIC ${VITIS_OPENCL_INCLUDE})
-    #  target_include_directories(vta_fsim PUBLIC ${VITIS_VIVADO_INCLUDE})
-    #endif()
-
-    #foreach(__def ${VTA_DEFINITIONS})
-    #  string(SUBSTRING ${__def} 3 -1 __strip_def)
-    #  target_compile_definitions(vta_fsim PUBLIC ${__strip_def})
-    #endforeach()
-    #include_directories("vta/include")
-    #target_compile_definitions(vta_fsim PUBLIC USE_FSIM_TLPP)
 
   endif()
 
@@ -130,7 +119,7 @@ elseif(PYTHON)
         "/usr/local/intelFPGA_lite/18.1/embedded/ds-5/sw/gcc/arm-linux-gnueabihf/include")
     elseif(${VTA_TARGET} STREQUAL "vitis")  # Vitis rules
       set(HOST_ARCH x86)
-      set_vitis(${USE_VTA_FPGA})
+      set_vitis(TRUE)
       if(_set_vitis)
         target_include_directories(vta PUBLIC ${VITIS_OPENCL_INCLUDE})
         target_include_directories(vta PUBLIC ${VITIS_VIVADO_INCLUDE})

@@ -29,8 +29,8 @@
 #    opencl_LDFLAGS
 #
 macro(set_vitis use_vta_fpga)
-  set(__use_vitis ${use_vta_fpga})
-  if(EXISTS $ENV{XILINX_VITIS} AND EXISTS $ENV{XILINX_XRT} AND EXISTS $ENV{XILINX_VIVADO})
+  if(${use_vta_fpga})
+    if(EXISTS $ENV{XILINX_VITIS} AND EXISTS $ENV{XILINX_XRT} AND EXISTS $ENV{XILINX_VIVADO})
       # Currently the host architecture is fixed with x86 only
       # Xilinx Utils
       set(CXX "$ENV{XILINX_VIVADO}/tps/gcc-6.2.0/bin/g++")
@@ -46,8 +46,9 @@ macro(set_vitis use_vta_fpga)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11 -fpermissive")
 
       set(_set_vitis TRUE)
-  else()
-    message(STATUS "XILINX_VITIS and XILINX_XRT are not set")
+    else()
+      message(STATUS "XILINX_VITIS and XILINX_XRT are not set")
+    endif()
   endif()
 
   if(_set_vitis)
@@ -56,5 +57,6 @@ macro(set_vitis use_vta_fpga)
     message(STATUS "VITIS_VIVADO_INCLUDE=" ${VITIS_VIVADO_INCLUDE})
     message(STATUS "OPENCL_LIB=" ${OPENCL_LIB})
     message(STATUS "opencl_LDFLAGS=" ${opencl_LDFLAGS})
+    message(STATUS "CMAKE_CXX_FLAGS=" ${CMAKE_CXX_FLAGS})
   endif(_set_vitis)
 endmacro(set_vitis)
