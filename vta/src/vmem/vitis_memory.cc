@@ -23,8 +23,6 @@
  */
 
 #include "vitis_memory.h"
-
-#include <dmlc/logging.h>
 #include <vta/driver.h>
 #include <cstdint>
 #include <cstdlib>
@@ -39,9 +37,19 @@
 namespace vta {
 namespace hmem {
 
+void* HostMemoryManager::GetAddr(uint64_t phy_addr) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  vta_phy_addr_t dram_base = vta_phy_addr_t(&host_dram[0]);
+  return reinterpret_cast<void*>(dram_base + phy_addr);
+}
+
 vta_phy_addr_t HostMemoryManager::GetPhyAddr(void* buf) {
   std::lock_guard<std::mutex> lock(mutex_);
   auto it = active_map_.find((Page*)buf);
+  if(it == active_map_.end()) {
+    std::cout << "[GeyPhyAddr] page not found" << std::endl;
+    return -1;
+  }
   vta_phy_addr_t offset = 0;
   vta_phy_addr_t dram_base = vta_phy_addr_t(&host_dram[0]);
   offset = (vta_phy_addr_t)buf - dram_base;
@@ -55,16 +63,24 @@ void* HostMemoryManager::Alloc(size_t size) {
 
   auto it = free_map_.lower_bound(npage);
   if (it != free_map_.end()) {
-    Page* p = it->second;
+    Page* page_head = it->second;
+    size_t num_consecutive_pages = it->first;
+    active_map_.insert(std::make_pair(page_head, num_consecutive_pages));
     free_map_.erase(it);
-    return p->data;
+    active_pages += npage;
+    return (void *)page_head;
   }
 
-  CHECK(alloc_index >= (MAX_NUM_PAGES -1));
+  if(alloc_index >= (MAX_NUM_PAGES -1)) {
+    std::cout << "[Alloc] memory is full" << std::endl;
+    return NULL;
+  }
 
   active_map_[&host_dram[alloc_index]] = npage;
   void *data = &host_dram[alloc_index];
+  //std::cout << "Alloc info: at " << &host_dram[alloc_index] << ", npages " << npage << std::endl;
   alloc_index += npage;
+  active_pages += npage;
 
   return data;
 }
@@ -73,13 +89,18 @@ void HostMemoryManager::Free(void* data) {
   std::lock_guard<std::mutex> lock(mutex_);
   if (active_map_.size() == 0) return;
 
-  auto it = active_map_.find(data);
-  CHECK(it != active_map_.end());
-
-  Page* page_head = it->first.get();
-  size_t num_consecutive_pages = it->second.get()
-
+  auto it = active_map_.find(reinterpret_cast<Page*>(data));
+  if(it == active_map_.end()) {
+    std::cout << "[Free] page not found" << std::endl;
+    return;
+  }
+  //std::cout << "active pages (before): " << active_pages << std::endl;
+  Page* page_head = it->first;
+  size_t num_consecutive_pages = it->second;
   free_map_.insert(std::make_pair(num_consecutive_pages, page_head));
+  active_map_.erase(reinterpret_cast<Page*>(data));
+  active_pages -= num_consecutive_pages;
+  //std::cout << "active pages (after): " << active_pages << std::endl;
 }
 
 // TODO
@@ -93,6 +114,10 @@ void HostMemoryManager::MemCopyToHost(void* dst, const void * src, size_t size) 
 HostMemoryManager* HostMemoryManager::Global() {
   static HostMemoryManager inst;
   return &inst;
+}
+
+uint64_t HostMemoryManager::GetNumOfActivePages() {
+  return active_pages;
 }
 
 }  // namespace hmem

@@ -27,6 +27,7 @@
 
 #include <vta/driver.h>
 #include <cstdint>
+#include <iostream>
 #include <type_traits>
 #include <mutex>
 #include <vector>
@@ -37,9 +38,9 @@
 namespace vta {
 namespace hmem {
 
-#define DRAM_SIZE 536870912 // 512MB initially
-#define PAGE_SIZE 4096      // 4KB Pagesize
-#define MAX_NUM_PAGES 131072
+#define DRAM_SIZE (1024 << 19) // 512MB initially
+#define PAGE_SIZE (1 << 12)     // 4KB Pagesize
+#define MAX_NUM_PAGES (1024 << 7)
 
 typedef unsigned char BYTE;
 
@@ -56,6 +57,7 @@ class HostMemoryManager {
  public:
   HostMemoryManager() {
     alloc_index = 0;
+    active_pages = 0;
     host_dram = std::vector<Page>(MAX_NUM_PAGES);
   }
   void *GetAddr(uint64_t phy_addr);
@@ -65,11 +67,12 @@ class HostMemoryManager {
   void MemCopyFromHost(void* dst, const void * src, size_t size);
   void MemCopyToHost(void* dst, const void * src, size_t size);
   static HostMemoryManager* Global();
+  uint64_t GetNumOfActivePages();
 
  private:
   std::mutex mutex_;
   std::vector<Page> host_dram; // DRAM with pages
-  uint64_t alloc_index;
+  uint64_t alloc_index, active_pages;
 	std::map<Page*, size_t> active_map_; // DRAM page tabel; active-page table
   std::multimap<size_t, Page*> free_map_; // mapping of free pages
 };

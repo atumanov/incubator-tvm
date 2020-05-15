@@ -2,13 +2,19 @@ VTA_HOME = $(TVM_HOME)/vta
 TEST_PATH := $(VTA_HOME)/tests/vitis
 DRIVER_PATH := $(VTA_HOME)/src/vitis
 
+INC = $(VTA_HOME)/include
+VTA_INC = $(VTA_HOME)/include/vta
+VITIS_INC := $(VTA_HOME)/src/vitis
+VMEM_INC := $(VTA_HOME)/src/vmem
+
+$(info 'include path $(INCLUDE_PATH)')
 CXX = g++
-CXXFLAGS = --std=c++11 -I$(VTA_HOME)/include/vta/ -I$(VTA_HOME)/src/vitis -DUSE_VTA64 -Wall
+CXXFLAGS = --std=c++11 -I$(INC) -I$(VTA_INC) -I$(VITIS_INC) -I$(VMEM_INC) -DUSE_VTA64 -Wall
 LDFLAGS =
 
-SRCS = $(DRIVER_PATH)/mem_manager.cc
+SRCS = $(DRIVER_PATH)/mem_manager.cc $(VTA_HOME)/src/vmem/vitis_memory.cc
 CATCH_MAIN = $(TEST_PATH)/catch_main.cc
-TEST_SRCS = $(TEST_PATH)/naive_manger/test_naive_manager.cc
+TEST_SRCS = $(TEST_PATH)/naive_manger/test_naive_manager.cc $(TEST_PATH)/dram_manager/test_dram_manager.cc
 CATCH_OBJS := $(CATCH_MAIN:.cc=.o)
 OBJS := $(SRCS:.cc=.o)
 
@@ -16,8 +22,9 @@ OBJS := $(SRCS:.cc=.o)
 
 all: test
 $(info $(DRIVER_PATH))
-test: $(OBJS)
+test: $(OBJS) $(TEST_SRCS)
 	$(info $@)
+	$(info 'include path $(INCLUDE_PATH)')
 	$(CXX) $(CXXFLAGS) -c $(CATCH_MAIN)
 	$(CXX) $(CXXFLAGS) -c $(SRCS)
 	$(CXX) $(CXXFLAGS) -o $@ $(CATCH_OBJS) $(OBJS) $(TEST_SRCS)
