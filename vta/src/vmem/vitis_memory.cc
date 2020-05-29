@@ -39,7 +39,9 @@ namespace hmem {
 
 void* HostMemoryManager::GetAddr(uint64_t phy_addr) {
   std::lock_guard<std::mutex> lock(mutex_);
-  vta_phy_addr_t dram_base = vta_phy_addr_t(&host_dram[0]);
+  void *dram_base = &host_dram[0];
+  //printf("[GetAddr] drambase(%p), retaddr(%p) \n", dram_base, (void*)(dram_base + phy_addr));
+
   return reinterpret_cast<void*>(dram_base + phy_addr);
 }
 
@@ -47,12 +49,12 @@ vta_phy_addr_t HostMemoryManager::GetPhyAddr(void* buf) {
   std::lock_guard<std::mutex> lock(mutex_);
   auto it = active_map_.find((Page*)buf);
   if(it == active_map_.end()) {
-    std::cout << "[GeyPhyAddr] page not found" << std::endl;
+    printf("[GeyPhyAddr] page not found\n");
     return -1;
   }
   vta_phy_addr_t offset = 0;
-  vta_phy_addr_t dram_base = vta_phy_addr_t(&host_dram[0]);
-  offset = (vta_phy_addr_t)buf - dram_base;
+  vta_phy_addr_t dram_base = (uint64_t)&(host_dram[0]);
+  offset = reinterpret_cast<uint64_t>(buf) - dram_base;
   return offset;
 }
 
@@ -72,15 +74,17 @@ void* HostMemoryManager::Alloc(size_t size) {
   }
 
   if(alloc_index >= (MAX_NUM_PAGES -1)) {
-    std::cout << "[Alloc] memory is full" << std::endl;
+    printf("[Alloc] memory is full\n");
     return NULL;
   }
 
   active_map_[&host_dram[alloc_index]] = npage;
   void *data = &host_dram[alloc_index];
   //std::cout << "Alloc info: at " << &host_dram[alloc_index] << ", npages " << npage << std::endl;
+  //printf("\t[Alloc_Before] alloc_index: %ld, active_pages: %ld, npages: %ld\n", alloc_index, active_pages, npage);
   alloc_index += npage;
   active_pages += npage;
+  //printf("\t[Alloc_After] alloc_index: %ld, active_pages: %ld, npages: %ld\n", alloc_index, active_pages, npage);
 
   return data;
 }
@@ -94,13 +98,13 @@ void HostMemoryManager::Free(void* data) {
     std::cout << "[Free] page not found" << std::endl;
     return;
   }
-  //std::cout << "active pages (before): " << active_pages << std::endl;
+  //printf("\t [Free] active pages (before): %ld \n", active_pages);
   Page* page_head = it->first;
   size_t num_consecutive_pages = it->second;
   free_map_.insert(std::make_pair(num_consecutive_pages, page_head));
   active_map_.erase(reinterpret_cast<Page*>(data));
   active_pages -= num_consecutive_pages;
-  //std::cout << "active pages (after): " << active_pages << std::endl;
+  //printf("\t [Free] active pages (after): %ld \n", active_pages);
 }
 
 // TODO

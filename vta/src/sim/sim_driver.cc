@@ -32,7 +32,7 @@
 #include <cstring>
 #include <sstream>
 
-#include "../vmem/virtual_memory.h"
+#include "../vmem/vitis_memory.h"
 
 namespace vta {
 namespace sim {
@@ -127,7 +127,8 @@ class BitPacker {
  * \brief DRAM memory manager
  *  Implements simple paging to allow physical address translation.
  */
-using DRAM = ::vta::vmem::VirtualMemoryManager;
+//using DRAM = ::vta::vmem::VirtualMemoryManager;
+using DRAM = ::vta::hmem::HostMemoryManager;
 
 /*!
  * \brief Register file.
@@ -506,46 +507,47 @@ TVM_REGISTER_GLOBAL("vta.simulator.profiler_debug_mode")
 
 void* VTAMemAlloc(size_t size, int cached) {
   void * ptr = vta::sim::DRAM::Global()->Alloc(size);
-  printf("\tAlloc %x", size);
+  //printf("\tAlloc size(0x%x), addr(%p), npages(%d)", size, ptr, (int)(((int)size+4095)/4096));
   return ptr;
 }
 
 void VTAMemFree(void* buf) {
-  printf("\tFreeing %p\n", buf);
+  //printf("\tFreeing %p\n", buf);
   vta::sim::DRAM::Global()->Free(buf);
 }
 
 vta_phy_addr_t VTAMemGetPhyAddr(void* buf) {
   vta_phy_addr_t addr = vta::sim::DRAM::Global()->GetPhyAddr(buf);
-  printf(" Physical address(%p) = %p\n", buf, addr);
+  //printf(" Physical address(%p) = %p\n", buf, addr);
   return addr;
 }
 
 void VTAMemCopyFromHost(void* dst, const void* src, size_t size) {
-  printf("\t[HOST]:%p -> [FPGA]:%p %x\n", dst, src, size);
+  //printf("\t[HOST]:%p -> [FPGA]:%p %x\n", src, dst, size);
   memcpy(dst, src, size);
 }
 
 void VTAMemCopyToHost(void* dst, const void* src, size_t size) {
-  printf("\t[FPGA]:%p -> [HOST]:%p %x\n", dst, src, size);
+  //printf("\t[VTAMemCopyToHost]\n");
+  //printf("\t[FPGA]:%p -> [HOST]:%p %x\n", src, dst, size);
   memcpy(dst, src, size);
 }
 
 void VTAFlushCache(void* vir_addr, vta_phy_addr_t phy_addr, int size) {
-  printf("Flush cache\n");
+  //printf("Flush cache\n");
 }
 
 void VTAInvalidateCache(void* vir_addr, vta_phy_addr_t phy_addr, int size) {
-  printf("Invalidate cache\n");
+  //printf("Invalidate cache\n");
 }
 
 VTADeviceHandle VTADeviceAlloc() {
-  printf("Allocating a new device\n");
+  //printf("Allocating a new device\n");
   return new vta::sim::Device();
 }
 
 void VTADeviceFree(VTADeviceHandle handle) {
-  printf("Freeing device %p\n", handle);
+  //printf("Freeing device %p\n", handle);
   delete static_cast<vta::sim::Device*>(handle);
 }
 
@@ -553,9 +555,10 @@ int VTADeviceRun(VTADeviceHandle handle,
                  vta_phy_addr_t insn_phy_addr,
                  uint32_t insn_count,
                  uint32_t wait_cycles) {
-  printf("Run Handle: %p phy_addr: %p count: %x\n", handle, insn_phy_addr, insn_count);
+  //printf("Run Handle: %p phy_addr: %p count: %d\n", handle, insn_phy_addr, insn_count);
   return static_cast<vta::sim::Device*>(handle)->Run(
       insn_phy_addr, insn_count, wait_cycles);
+  //printf("Run Handle End\n");
 }
 
 void VTAProgram(const char* bitstream) {

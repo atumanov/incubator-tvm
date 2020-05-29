@@ -39,13 +39,13 @@ namespace vta {
 namespace hmem {
 
 #define DRAM_SIZE (1024 << 19) // 512MB initially
-#define PAGE_SIZE (1 << 12)     // 4KB Pagesize
+#define PAGE_SIZE 4096     // 4KB Pagesize
 #define MAX_NUM_PAGES (1024 << 7)
 
 typedef unsigned char BYTE;
 
 typedef struct Page {
-	BYTE data[PAGE_SIZE];
+	u_char data[PAGE_SIZE];
 } Page;
 
 typedef struct PageTableElem {

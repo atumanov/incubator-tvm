@@ -1322,10 +1322,12 @@ class CommandQueue {
 }  // namespace vta
 
 void* VTABufferAlloc(size_t size) {
+  printf("[VTABufferAlloc]\n");
   return vta::DataBuffer::Alloc(size);
 }
 
 void VTABufferFree(void* buffer) {
+  printf("[VTABufferFree]\n");
   vta::DataBuffer::Free(vta::DataBuffer::FromHandle(buffer));
 }
 
@@ -1338,6 +1340,7 @@ void VTABufferCopy(const void* from,
   vta::DataBuffer* from_buffer = nullptr;
   vta::DataBuffer* to_buffer = nullptr;
 
+  printf("[VTABufferCopy]\n");
   if (kind_mask & 2) {
     from_buffer = vta::DataBuffer::FromHandle(from);
     from = from_buffer->virt_addr();
@@ -1367,6 +1370,7 @@ VTACommandHandle VTATLSCommandHandle() {
 }
 
 void VTARuntimeShutdown() {
+  printf("[VTARuntimeShutdown]\n");
   vta::CommandQueue::Shutdown();
 }
 
