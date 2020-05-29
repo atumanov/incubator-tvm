@@ -39,7 +39,8 @@ namespace hmem {
 
 void* HostMemoryManager::GetAddr(uint64_t phy_addr) {
   std::lock_guard<std::mutex> lock(mutex_);
-  void *dram_base = &host_dram[0];
+  //void *dram_base = &host_dram[0];
+  vta_phy_addr_t dram_base = reinterpret_cast<uint64_t>(&host_dram[0]);
   //printf("[GetAddr] drambase(%p), retaddr(%p) \n", dram_base, (void*)(dram_base + phy_addr));
 
   return reinterpret_cast<void*>(dram_base + phy_addr);
