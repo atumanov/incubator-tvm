@@ -244,3 +244,10 @@ vta/hardware/vitis/test_host
 vta/hardware/vitis/_x**
 vta/hardware/vitis/.**
 vta/tests/vitis/test
+
+#!vta
+#!vta/tests
+#!vta/tests/vitis
+#!vta/tests/vitis/novel_mem
+vta/tests/vitis/novel_mem/*
+!vta/tests/vitis/novel_mem/src
