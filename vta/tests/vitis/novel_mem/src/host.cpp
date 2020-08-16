@@ -53,7 +53,6 @@ int main(int argc, char **argv) {
     }
 
     char * host_read_ptr, *host_write_ptr;
-    int num_insn;
     int insn_phy_addr;
 
     OCL_CHECK(err, cl::Buffer dev_read_ptr(

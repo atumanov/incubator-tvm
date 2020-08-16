@@ -251,3 +251,4 @@ vta/tests/vitis/test
 #!vta/tests/vitis/novel_mem
 vta/tests/vitis/novel_mem/*
 !vta/tests/vitis/novel_mem/src
+!vta/tests/vitis/novel_mem/Makefile
